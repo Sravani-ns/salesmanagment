@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: salesmanagement-ingress
+    namespace: default
+spec:
+    rules:
+      - host: salesmanagement.local
+        http:
+          paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: salesmanagement-service
+                  port:
+                    number: 80

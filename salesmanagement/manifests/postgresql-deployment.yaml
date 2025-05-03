@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: salesmanagement
+    namespace: default
+    labels:
+      app: salesmanagement
+spec:
+    replicas: 2
+    selector:
+      matchLabels:
+        app: salesmanagement
+    template:
+      metadata:
+        labels:
+          app: salesmanagement
+      spec:
+        containers:
+          - name: salesmanagement
+            image: sravani99/salesmanagement:latest
+            ports:
+              - containerPort: 8080
+            imagePullPolicy: Always
