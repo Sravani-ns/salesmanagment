@@ -32,7 +32,7 @@ public class VehicleOrderWorkflowImpl implements VehicleOrderWorkflow {
     @Override
     public OrderResponse placeOrder(OrderRequest orderRequest) {
         log.info("Workflow started for customer: {}", orderRequest.getCustomerName());
-        OrderResponse response = null; // Declare response outside try block
+        OrderResponse response = null;
         try {
             response = activities.checkStockAvailability(orderRequest);
 
@@ -43,10 +43,10 @@ public class VehicleOrderWorkflowImpl implements VehicleOrderWorkflow {
 
             if (response.getOrderStatus() == OrderStatus.BLOCKED) {
                 log.info("Stock blocked for customer: {}", orderRequest.getCustomerName());
-                return response; // Return immediately, no further processing needed
+                return response;
             } else if (response.getOrderStatus() == OrderStatus.PENDING) {
                 log.info("Stock not available, manufacturer order placed for: {}", orderRequest.getCustomerName());
-                return response; // Return PENDING immediately, handle long wait separately
+                return response;
             } else if (response.getOrderStatus() == OrderStatus.COMPLETED) {
                 log.info("Order confirmed for customer: {}", orderRequest.getCustomerName());
                 return activities.confirmOrder(response);
@@ -62,7 +62,6 @@ public class VehicleOrderWorkflowImpl implements VehicleOrderWorkflow {
             response.setOrderStatus(OrderStatus.PENDING);
             return response;
         } finally {
-            // Long-running wait for manufacturer order after returning initial response
             if (response != null && response.getOrderStatus() == OrderStatus.PENDING) {
                 log.info("Starting 24-hour wait for manufacturer order for customer: {}", orderRequest.getCustomerName());
                 Workflow.await(Duration.ofHours(24), () -> isCanceled);
@@ -71,7 +70,6 @@ public class VehicleOrderWorkflowImpl implements VehicleOrderWorkflow {
                     activities.cancelOrder(Long.valueOf(Workflow.getInfo().getWorkflowId().split("-")[1]));
                 } else {
                     log.info("Manufacturer order wait completed, could update status to PROCESSING or COMPLETED if needed");
-                    // Optionally signal or update status here if manufacturer confirms
                 }
             }
         }
@@ -100,7 +98,6 @@ public class VehicleOrderWorkflowImpl implements VehicleOrderWorkflow {
         response.setCreatedAt(LocalDateTime.now());
         return response;
     }
-
 
     @Override
     public void cancelOrder(Long orderId) {

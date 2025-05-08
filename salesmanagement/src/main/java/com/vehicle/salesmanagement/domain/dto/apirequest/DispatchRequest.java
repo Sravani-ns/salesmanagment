@@ -4,8 +4,11 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class DispatchRequest {
+public class DispatchRequest implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @NotNull(message = "Customer order ID cannot be null")
     private Long customerOrderId;

@@ -4,10 +4,12 @@ import com.vehicle.salesmanagement.enums.DeliveryStatus;
 import com.vehicle.salesmanagement.enums.OrderStatus;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class DeliveryResponse {
+public class DeliveryResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Long deliveryId;
     private Long customerOrderId;
     private String customerName;

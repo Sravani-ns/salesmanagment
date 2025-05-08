@@ -4,8 +4,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class VehicleModelRequest {
+public class VehicleModelRequest implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @NotBlank(message = "Model name cannot be blank")
     @Size(min = 1, max = 100, message = "Model name must be between 1 and 100 characters")

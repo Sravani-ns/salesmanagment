@@ -1,11 +1,18 @@
 package com.vehicle.salesmanagement.domain.dto.apiresponse;
 
+import com.vehicle.salesmanagement.domain.entity.model.VehicleOrderDetails;
 import com.vehicle.salesmanagement.enums.OrderStatus;
+import lombok.Data;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-public class OrderResponse {
+import java.util.List;
+@Data
+public class OrderResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private Long customerOrderId;
     private Long vehicleModelId;
     private Long vehicleVariantId;
@@ -31,6 +38,8 @@ public class OrderResponse {
     private String createdBy;
     private String updatedBy;
     private String message;
+    private List<OrderResponse> vehicleOrders;
+    private VehicleOrderDetails vehicleDetails;
 
     public String getMessage() {
         return message;

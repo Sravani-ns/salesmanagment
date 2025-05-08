@@ -32,7 +32,7 @@ public class VehicleVariant {
     @Column(name = "safety_feature", length = 500)
     private String safetyFeature;
 
-    @Column(name = "colour", length = 50)
+    @Column(name = "colour", length = 100)
     private String colour;
 
     @Column(name = "engine_colour", length = 50)

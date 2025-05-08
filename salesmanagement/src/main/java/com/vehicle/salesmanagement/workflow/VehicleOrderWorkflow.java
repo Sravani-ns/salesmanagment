@@ -10,7 +10,6 @@ import io.temporal.workflow.WorkflowMethod;
 public interface VehicleOrderWorkflow {
     @WorkflowMethod
     OrderResponse placeOrder(OrderRequest orderRequest);
-
     @SignalMethod
     void cancelOrder(Long customerOrderId); // Signal to cancel within the placeOrder workflow
 }

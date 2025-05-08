@@ -35,69 +35,69 @@ public class DispatchDeliveryWorkflowImpl implements DispatchDeliveryWorkflow {
 
     @Override
     public DeliveryResponse processDispatchAndDelivery(DispatchRequest dispatchRequest) {
-        Long orderId = dispatchRequest.getCustomerOrderId();
-        log.info("Starting dispatch and delivery workflow for order ID: {}", orderId);
+        Long customerOrderId = dispatchRequest.getCustomerOrderId();
+        log.info("Starting dispatch and delivery workflow for order ID: {}", customerOrderId);
 
         // Step 1: Check order status and initiate dispatch if ALLOTTED
-        Optional<VehicleOrderDetails> orderDetailsOpt = activities.getVehicleOrderDetails(orderId);
+        Optional<VehicleOrderDetails> orderDetailsOpt = activities.getVehicleOrderDetails(customerOrderId);
         if (orderDetailsOpt.isPresent()) {
             VehicleOrderDetails orderDetails = orderDetailsOpt.get();
             OrderStatus currentStatus = orderDetails.getOrderStatus();
             if (currentStatus.equals(OrderStatus.ALLOTTED)) {
                 DispatchResponse dispatchResponse = activities.initiateDispatch(dispatchRequest);
                 if (!dispatchResponse.getOrderStatus().equals(OrderStatus.DISPATCHED)) {
-                    log.error("Dispatch failed to set order status to DISPATCHED for order ID: {}", orderId);
-                    throw new RuntimeException("Dispatch failed for order ID: " + orderId);
+                    log.error("Dispatch failed to set order status to DISPATCHED for order ID: {}",customerOrderId);
+                    throw new RuntimeException("Dispatch failed for order ID: " + customerOrderId);
                 }
-                log.info("Dispatch completed, order status updated to DISPATCHED for order ID: {}", orderId);
+                log.info("Dispatch completed, order status updated to DISPATCHED for order ID: {}", customerOrderId);
             } else if (currentStatus.equals(OrderStatus.DISPATCHED) ||
                     currentStatus.equals(OrderStatus.DELIVERED) ||
                     currentStatus.equals(OrderStatus.COMPLETED)) {
-                log.warn("Order ID {} is already in status {}. Skipping dispatch.", orderId, currentStatus);
+                log.warn("Order ID {} is already in status {}. Skipping dispatch.", customerOrderId, currentStatus);
             } else {
-                log.error("Order ID {} is in invalid status {} for dispatch.", orderId, currentStatus);
+                log.error("Order ID {} is in invalid status {} for dispatch.", customerOrderId, currentStatus);
                 throw new RuntimeException("Invalid order status for dispatch: " + currentStatus);
             }
         } else {
-            log.error("Order ID {} not found for dispatch.", orderId);
-            throw new RuntimeException("Order not found: " + orderId);
+            log.error("Order ID {} not found for dispatch.", customerOrderId);
+            throw new RuntimeException("Order not found: " + customerOrderId);
         }
 
         // Step 2: Wait for delivery confirmation signal
-        Workflow.await(Duration.ofDays(7), () -> isDeliveryConfirmed);
+        Workflow.await(Duration.ofMinutes(1), () -> isDeliveryConfirmed);
 
         if (!isDeliveryConfirmed || deliveryRequest == null) {
-            log.warn("Delivery not confirmed within 7 days for order ID: {}", orderId);
-            throw new RuntimeException("Delivery not confirmed for order ID: " + orderId);
+            log.warn("Delivery not confirmed within 1 minutes for order ID: {}", customerOrderId);
+            throw new RuntimeException("Delivery not confirmed for order ID: " + customerOrderId);
         }
 
         // Step 3: Check order status and confirm delivery if DISPATCHED
         DeliveryResponse deliveryResponse = null;
-        orderDetailsOpt = activities.getVehicleOrderDetails(orderId);
+        orderDetailsOpt = activities.getVehicleOrderDetails(customerOrderId);
         if (orderDetailsOpt.isPresent()) {
             OrderStatus currentStatus = orderDetailsOpt.get().getOrderStatus();
             if (currentStatus.equals(OrderStatus.DISPATCHED)) {
                 deliveryResponse = activities.confirmDelivery(deliveryRequest);
                 if (!deliveryResponse.getOrderStatus().equals(OrderStatus.DELIVERED)) {
-                    log.error("Delivery confirmation failed to set order status to DELIVERED for order ID: {}", orderId);
-                    throw new RuntimeException("Delivery confirmation failed for order ID: " + orderId);
+                    log.error("Delivery confirmation failed to set order status to DELIVERED for order ID: {}", customerOrderId);
+                    throw new RuntimeException("Delivery confirmation failed for order ID: " + customerOrderId);
                 }
-                log.info("Delivery completed, order status updated to DELIVERED for order ID: {}", orderId);
+                log.info("Delivery completed, order status updated to DELIVERED for order ID: {}", customerOrderId);
             } else if (currentStatus.equals(OrderStatus.DELIVERED) ||
                     currentStatus.equals(OrderStatus.COMPLETED)) {
                 log.warn("Order ID {} is already in status {}. Skipping delivery confirmation.",
-                        orderId, currentStatus);
+                        customerOrderId, currentStatus);
                 deliveryResponse = activities.confirmDelivery(deliveryRequest); // Idempotent call
             } else {
-                log.error("Order ID {} is in invalid status {} for delivery.", orderId, currentStatus);
+                log.error("Order ID {} is in invalid status {} for delivery.", customerOrderId, currentStatus);
                 throw new RuntimeException("Invalid order status for delivery: " + currentStatus);
             }
         } else {
-            log.error("Order ID {} not found for delivery confirmation.", orderId);
-            throw new RuntimeException("Order not found: " + orderId);
+            log.error("Order ID {} not found for delivery confirmation.", customerOrderId);
+            throw new RuntimeException("Order not found: " + customerOrderId);
         }
 
-        log.info("Dispatch and delivery workflow completed for order ID: {}", orderId);
+        log.info("Dispatch and delivery workflow completed for order ID: {}", customerOrderId);
         return deliveryResponse;
     }
 

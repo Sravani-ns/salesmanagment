@@ -1,9 +1,10 @@
 package com.vehicle.salesmanagement.service;
-
 import com.vehicle.salesmanagement.domain.dto.apirequest.OrderRequest;
 import com.vehicle.salesmanagement.domain.dto.apirequest.VehicleModelRequest;
 import com.vehicle.salesmanagement.domain.dto.apirequest.VehicleVariantRequest;
+import com.vehicle.salesmanagement.domain.dto.apiresponse.OrderDetailsResponse;
 import com.vehicle.salesmanagement.domain.dto.apiresponse.OrderResponse;
+import com.vehicle.salesmanagement.domain.dto.apiresponse.TotalOrdersResponse;
 import com.vehicle.salesmanagement.domain.dto.apiresponse.VehicleModelResponse;
 import com.vehicle.salesmanagement.domain.entity.model.*;
 import com.vehicle.salesmanagement.enums.OrderStatus;
@@ -29,6 +30,7 @@ public class VehicleOrderService {
     private final VehicleVariantRepository variantRepository;
     private final VehicleModelRepository vehicleModelRepository;
     private final HistoryService historyService;
+
 
     @Transactional
     public OrderResponse checkAndBlockStock(OrderRequest orderRequest) {
@@ -113,16 +115,15 @@ public class VehicleOrderService {
     @Transactional
     public OrderResponse confirmOrder(OrderResponse orderResponse) {
         VehicleOrderDetails orderDetails = mapToOrderDetails(orderResponse);
-        historyService.saveOrderHistory(orderDetails, orderDetails.getUpdatedBy(), OrderStatus.CONFIRMED); // Pass new status
+        historyService.saveOrderHistory(orderDetails, orderDetails.getUpdatedBy(), OrderStatus.CONFIRMED);
         orderDetails.setOrderStatus(OrderStatus.CONFIRMED);
         orderRepository.save(orderDetails);
         return orderResponse;
     }
 
-    @Transactional
     public OrderResponse notifyCustomerWithTentativeDelivery(OrderResponse orderResponse) {
         VehicleOrderDetails orderDetails = mapToOrderDetails(orderResponse);
-        historyService.saveOrderHistory(orderDetails, orderDetails.getUpdatedBy(), OrderStatus.NOTIFIED); // Pass new status
+        historyService.saveOrderHistory(orderDetails, orderDetails.getUpdatedBy(), OrderStatus.NOTIFIED);
         orderDetails.setOrderStatus(OrderStatus.NOTIFIED);
         orderDetails.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(orderDetails);
@@ -168,7 +169,7 @@ public class VehicleOrderService {
             stockRepository.save(newStock);
         }
 
-        historyService.saveOrderHistory(orderDetails, "system", OrderStatus.CANCELED); // Pass new status
+        historyService.saveOrderHistory(orderDetails, "system", OrderStatus.CANCELED);
         orderDetails.setOrderStatus(OrderStatus.CANCELED);
         orderDetails.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(orderDetails);
@@ -387,4 +388,54 @@ public class VehicleOrderService {
 
         return variantRepository.save(variant);
     }
-}
+
+    public int getBookedVehicleCount(Long customerOrderId) {
+        VehicleOrderDetails orderDetails = orderRepository.findById(customerOrderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + customerOrderId));
+        return orderDetails.getQuantity();
+    }
+
+
+    public TotalOrdersResponse getTotalOrders() {
+        Long totalOrders = orderRepository.countTotalOrders();
+        return new TotalOrdersResponse(totalOrders);
+    }
+
+
+    public TotalOrdersResponse getPendingOrdersCount() {
+        Long pendingOrders = orderRepository.countPendingOrders();
+        return new TotalOrdersResponse(pendingOrders);
+    }
+
+
+    public TotalOrdersResponse getFinancePendingOrdersCount() {
+        Long financePendingOrders = orderRepository.countFinancePendingOrders();
+        return new TotalOrdersResponse(financePendingOrders);
+    }
+
+    public TotalOrdersResponse getClosedOrdersCount() {
+        Long closedOrders = orderRepository.countClosedOrders();
+        return new TotalOrdersResponse(closedOrders);
+    }
+
+
+    public OrderDetailsResponse getOrderDetailsByCustomerOrderId(Long customerOrderId) {
+        VehicleOrderDetails orderDetails = orderRepository.findById(customerOrderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + customerOrderId));
+
+        OrderDetailsResponse response = new OrderDetailsResponse();
+        response.setCustomerName(orderDetails.getCustomerName());
+        response.setPhoneNumber(orderDetails.getPhoneNumber());
+        response.setEmail(orderDetails.getEmail());
+        response.setAadharNo(orderDetails.getAadharNo());
+        response.setPanNo(orderDetails.getPanNo());
+        response.setModelName(orderDetails.getModelName());
+        response.setFuelType(orderDetails.getFuelType());
+        response.setColour(orderDetails.getColour());
+        response.setVariant(orderDetails.getVariant());
+        response.setQuantity(orderDetails.getQuantity());
+        response.setOrderStatus(orderDetails.getOrderStatus());
+
+        return response;
+    }
+    }

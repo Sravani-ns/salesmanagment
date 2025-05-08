@@ -4,10 +4,13 @@ import com.vehicle.salesmanagement.enums.FinanceStatus;
 import com.vehicle.salesmanagement.enums.OrderStatus;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class FinanceResponse {
+public class FinanceResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
+
 
     private Long financeId;
     private Long customerOrderId;

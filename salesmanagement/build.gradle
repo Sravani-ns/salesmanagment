@@ -41,6 +41,10 @@ dependencies {
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 
 
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'io.lettuce:lettuce-core:6.3.2.RELEASE' // Compatible with Spring Boot 3.x
+
+
 // Temporal dependencies
 implementation 'io.temporal:temporal-sdk:1.24.1'
 testImplementation 'io.temporal:temporal-testing:1.24.1'
