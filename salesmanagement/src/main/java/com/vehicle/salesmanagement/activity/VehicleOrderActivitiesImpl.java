@@ -4,7 +4,6 @@ import com.vehicle.salesmanagement.domain.dto.apirequest.OrderRequest;
 import com.vehicle.salesmanagement.domain.dto.apiresponse.OrderResponse;
 import com.vehicle.salesmanagement.domain.entity.model.VehicleOrderDetails;
 import com.vehicle.salesmanagement.enums.OrderStatus;
-import com.vehicle.salesmanagement.enums.StockStatus;
 import com.vehicle.salesmanagement.repository.VehicleOrderDetailsRepository;
 import com.vehicle.salesmanagement.service.VehicleOrderService;
 import lombok.RequiredArgsConstructor;
@@ -15,13 +14,12 @@ import org.springframework.util.StringUtils;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-
 public class VehicleOrderActivitiesImpl implements VehicleOrderActivities {
 
     private final VehicleOrderDetailsRepository vehicleOrderDetailsRepository;
     private final VehicleOrderService vehicleOrderService;
 
-        @Override
+    @Override
     public void saveOrderDetails(VehicleOrderDetails vehicleOrderDetails) {
         try {
             log.info("Saving order details for customer: {}", vehicleOrderDetails.getCustomerName());

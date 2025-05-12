@@ -8,14 +8,12 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
 @Setter
 public class OrderRequest {
-    //private static final long serialVersionUID = 1L;
 
     private Long vehicleModelId;
     private Long vehicleVariantId;
@@ -61,11 +59,4 @@ public class OrderRequest {
     private String updatedBy;
 
     private List<VehicleOrderDetails> vehicleDetails;
-
-    public void setCustomerOrderId(Long customerOrderId) {
-    }
-
-    public Long getCustomerOrderId() {
-        return getCustomerOrderId();
-    }
 }

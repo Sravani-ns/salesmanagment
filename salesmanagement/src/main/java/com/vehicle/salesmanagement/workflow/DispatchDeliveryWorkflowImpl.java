@@ -19,7 +19,9 @@ import java.util.Optional;
 public class DispatchDeliveryWorkflowImpl implements DispatchDeliveryWorkflow {
 
     private final DispatchDeliveryActivities activities;
+    private DispatchRequest dispatchRequest;
     private DeliveryRequest deliveryRequest;
+    private DeliveryResponse deliveryResponse;
     private boolean isDeliveryConfirmed = false;
 
     public DispatchDeliveryWorkflowImpl() {
@@ -31,6 +33,36 @@ public class DispatchDeliveryWorkflowImpl implements DispatchDeliveryWorkflow {
                         .build())
                 .build();
         this.activities = Workflow.newActivityStub(DispatchDeliveryActivities.class, options);
+    }
+
+    @Override
+    public void startDispatch(DispatchRequest request) {
+        this.dispatchRequest = request;
+        log.info("Starting dispatch process for order ID: {}", request.getCustomerOrderId());
+        // Implement dispatch logic here
+    }
+
+    @Override
+    public DeliveryResponse confirmDelivery(DeliveryRequest request) {
+        this.deliveryRequest = request;
+        log.info("Confirming delivery for order ID: {}", request.getCustomerOrderId());
+        
+        // Create and return delivery response
+        DeliveryResponse response = new DeliveryResponse();
+        response.setCustomerOrderId(request.getCustomerOrderId());
+        response.setCustomerName(request.getCustomerName());
+        response.setDeliveryDate(request.getDeliveryDate());
+        response.setDeliveredBy(request.getDeliveredBy());
+        response.setRecipientName(request.getRecipientName());
+        
+        this.deliveryResponse = response;
+        return response;
+    }
+
+    @Override
+    public void cancelDispatch(Long customerOrderId) {
+        log.info("Canceling dispatch for order ID: {}", customerOrderId);
+        // Implement cancellation logic here
     }
 
     @Override

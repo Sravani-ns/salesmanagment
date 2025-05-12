@@ -3,12 +3,10 @@ package com.vehicle.salesmanagement.domain.dto.apirequest;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-public class VehicleVariantRequest implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class VehicleVariantRequest {
 
     @NotNull(message = "Model ID cannot be null")
     private Long modelId;

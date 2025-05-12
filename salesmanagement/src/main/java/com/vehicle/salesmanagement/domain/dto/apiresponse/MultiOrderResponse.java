@@ -2,13 +2,10 @@ package com.vehicle.salesmanagement.domain.dto.apiresponse;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class MultiOrderResponse implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class MultiOrderResponse {
     private int status;
     private String message;
     private List<OrderResponse> orderResponses;

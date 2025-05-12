@@ -5,11 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class StockAddRequest implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class StockAddRequest {
     @NotNull(message = "Model ID cannot be null")
     private Long modelId;
     @NotBlank(message = "Variant cannot be blank")

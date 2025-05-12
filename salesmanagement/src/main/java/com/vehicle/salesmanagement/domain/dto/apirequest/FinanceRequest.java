@@ -3,11 +3,8 @@ package com.vehicle.salesmanagement.domain.dto.apirequest;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class FinanceRequest implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class FinanceRequest {
 
     @NotNull(message = "Customer order ID cannot be null")
     private Long customerOrderId;

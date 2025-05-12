@@ -4,11 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class RejectFinanceRequest implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class RejectFinanceRequest {
 
     @NotNull(message = "Customer order ID cannot be null")
     private Long customerOrderId;

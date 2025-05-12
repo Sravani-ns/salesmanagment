@@ -4,15 +4,11 @@ import com.vehicle.salesmanagement.domain.entity.model.VehicleOrderDetails;
 import com.vehicle.salesmanagement.enums.OrderStatus;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-
 import java.util.List;
 @Data
-public class OrderResponse implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class OrderResponse {
     private Long customerOrderId;
     private Long vehicleModelId;
     private Long vehicleVariantId;

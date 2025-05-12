@@ -1,11 +1,7 @@
 package com.vehicle.salesmanagement.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vehicle.salesmanagement.domain.dto.apirequest.MultiOrderRequest;
-import com.vehicle.salesmanagement.domain.dto.apirequest.OrderRequest;
-import com.vehicle.salesmanagement.domain.dto.apirequest.StockAddRequest;
-import com.vehicle.salesmanagement.domain.dto.apirequest.VehicleModelRequest;
-import com.vehicle.salesmanagement.domain.dto.apirequest.VehicleVariantRequest;
+import com.vehicle.salesmanagement.domain.dto.apirequest.*;
 import com.vehicle.salesmanagement.domain.dto.apiresponse.*;
 import com.vehicle.salesmanagement.domain.entity.model.VehicleOrderDetails;
 import com.vehicle.salesmanagement.domain.entity.model.VehicleVariant;
@@ -13,10 +9,9 @@ import com.vehicle.salesmanagement.enums.OrderStatus;
 import com.vehicle.salesmanagement.repository.VehicleModelRepository;
 import com.vehicle.salesmanagement.repository.VehicleOrderDetailsRepository;
 import com.vehicle.salesmanagement.repository.VehicleVariantRepository;
-import com.vehicle.salesmanagement.service.RedisService;
 import com.vehicle.salesmanagement.service.VehicleOrderService;
-import com.vehicle.salesmanagement.workflow.UnifiedVehicleOrderWorkflow;
 import com.vehicle.salesmanagement.workflow.VehicleCancelWorkflow;
+import com.vehicle.salesmanagement.workflow.VehicleOrderWorkflow;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,13 +32,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -57,12 +48,11 @@ public class VehicleOrderController {
     private final VehicleModelRepository vehicleModelRepository;
     private final VehicleVariantRepository vehicleVariantRepository;
     private final VehicleOrderService vehicleOrderService;
-    private final RedisService redisService;
     private final ObjectMapper objectMapper;
 
     @Transactional
     @PostMapping("/create")
-    @Operation(summary = "Place vehicle order(s)", description = "Initiates one or multiple vehicle orders and starts unified workflows for each")
+    @Operation(summary = "Place vehicle order(s)", description = "Initiates one or multiple vehicle orders and starts workflows for each")
     @ApiResponses({
             @ApiResponse(responseCode = "202", description = "Order(s) placed successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request data"),
@@ -155,69 +145,46 @@ public class VehicleOrderController {
         orderDetails = orderRepository.saveAndFlush(orderDetails);
         log.info("Order saved with ID: {}", orderDetails.getCustomerOrderId());
 
-        // Update the OrderRequest with the customerOrderId
-        orderRequest.setCustomerOrderId(orderDetails.getCustomerOrderId());
-
-        // Check Redis for cached workflow state
-        UnifiedWorkflowResponse cachedResponse = redisService.getWorkflowState(orderDetails.getCustomerOrderId());
-        if (cachedResponse != null) {
-            log.info("Returning cached workflow response for order ID: {}", orderDetails.getCustomerOrderId());
-            com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
-                    HttpStatus.ACCEPTED.value(),
-                    "Unified workflow state retrieved from cache for order ID: " + orderDetails.getCustomerOrderId(),
-                    cachedResponse
-            );
-            return ResponseEntity.status(HttpStatus.ACCEPTED).body(apiResponse);
-        }
-
         WorkflowOptions options = WorkflowOptions.newBuilder()
-                .setTaskQueue("unified-task-queue")
-                .setWorkflowId("unified-" + orderDetails.getCustomerOrderId())
+                .setTaskQueue("vehicle-order-task-queue")
+                .setWorkflowId("order-" + orderDetails.getCustomerOrderId())
                 .build();
 
-        UnifiedVehicleOrderWorkflow workflow = workflowClient.newWorkflowStub(UnifiedVehicleOrderWorkflow.class, options);
-        WorkflowClient.start(workflow::processOrder, orderRequest);
+        VehicleOrderWorkflow workflow = workflowClient.newWorkflowStub(VehicleOrderWorkflow.class, options);
+        WorkflowClient.start(workflow::placeOrder, orderRequest);
 
-        UnifiedWorkflowResponse unifiedResponse;
+        OrderResponse response;
         try {
-            unifiedResponse = workflowClient.newUntypedWorkflowStub("unified-" + orderDetails.getCustomerOrderId())
-                    .getResult(30, TimeUnit.SECONDS, UnifiedWorkflowResponse.class);
-            redisService.cacheWorkflowState(orderDetails.getCustomerOrderId(), unifiedResponse);
+            response = workflowClient.newUntypedWorkflowStub("order-" + orderDetails.getCustomerOrderId())
+                    .getResult(30, TimeUnit.SECONDS, OrderResponse.class);
         } catch (Exception e) {
             log.error("Failed to get workflow result for order ID: {} - {}", orderDetails.getCustomerOrderId(), e.getMessage());
-            OrderResponse fallbackResponse = vehicleOrderService.mapToOrderResponse(orderRequest);
-            fallbackResponse.setOrderStatus(OrderStatus.PENDING);
-            fallbackResponse.setCustomerName(orderRequest.getCustomerName());
-            fallbackResponse.setModelName(orderRequest.getModelName());
-            fallbackResponse.setCreatedAt(LocalDateTime.now());
-            fallbackResponse.setCustomerOrderId(orderDetails.getCustomerOrderId());
-            unifiedResponse = new UnifiedWorkflowResponse(fallbackResponse, null, null, null);
-            redisService.cacheWorkflowState(orderDetails.getCustomerOrderId(), unifiedResponse);
-        }
-
-        OrderResponse response = unifiedResponse.getOrderResponse();
-        if (response == null || response.getOrderStatus() == null) {
-            log.warn("Workflow returned null order response or status for order ID: {}, defaulting to PENDING", orderDetails.getCustomerOrderId());
             response = vehicleOrderService.mapToOrderResponse(orderRequest);
             response.setOrderStatus(OrderStatus.PENDING);
+            response.setCustomerName(orderRequest.getCustomerName());
+            response.setModelName(orderRequest.getModelName());
+            response.setCreatedAt(LocalDateTime.now());
             response.setCustomerOrderId(orderDetails.getCustomerOrderId());
-            unifiedResponse.setOrderResponse(response);
-            redisService.cacheWorkflowState(orderDetails.getCustomerOrderId(), unifiedResponse);
         }
 
-        orderDetails.setOrderStatus(unifiedResponse.getOverallOrderStatus());
+        if (response.getOrderStatus() == null) {
+            log.warn("Workflow returned null status for order ID: {}, defaulting to PENDING", orderDetails.getCustomerOrderId());
+            response.setOrderStatus(OrderStatus.PENDING);
+        }
+
+        orderDetails.setOrderStatus(response.getOrderStatus());
         orderRepository.save(orderDetails);
 
         com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
                 HttpStatus.ACCEPTED.value(),
-                "Unified workflow started successfully for order ID: " + orderDetails.getCustomerOrderId(),
-                unifiedResponse
+                "Order placed successfully with ID: " + orderDetails.getCustomerOrderId() + ". Workflow started.",
+                response
         );
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(apiResponse);
     }
 
     private ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> handleMultiOrder(@Valid MultiOrderRequest multiOrderRequest) {
-        List<UnifiedWorkflowResponse> unifiedResponses = new ArrayList<>();
+        List<OrderResponse> orderResponses = new ArrayList<>();
         List<Long> orderIds = new ArrayList<>();
 
         for (OrderRequest orderRequest : multiOrderRequest.getVehicleOrders()) {
@@ -228,66 +195,48 @@ public class VehicleOrderController {
             orderIds.add(orderDetails.getCustomerOrderId());
             log.info("Order saved with ID: {}", orderDetails.getCustomerOrderId());
 
-            // Update the OrderRequest with the customerOrderId
-            orderRequest.setCustomerOrderId(orderDetails.getCustomerOrderId());
-
-            // Check Redis for cached workflow state
-            UnifiedWorkflowResponse cachedResponse = redisService.getWorkflowState(orderDetails.getCustomerOrderId());
-            if (cachedResponse != null) {
-                unifiedResponses.add(cachedResponse);
-                continue;
-            }
-
             WorkflowOptions options = WorkflowOptions.newBuilder()
-                    .setTaskQueue("unified-task-queue")
-                    .setWorkflowId("unified-" + orderDetails.getCustomerOrderId())
+                    .setTaskQueue("vehicle-order-task-queue")
+                    .setWorkflowId("order-" + orderDetails.getCustomerOrderId())
                     .build();
 
-            UnifiedVehicleOrderWorkflow workflow = workflowClient.newWorkflowStub(UnifiedVehicleOrderWorkflow.class, options);
-            WorkflowClient.start(workflow::processOrder, orderRequest);
+            VehicleOrderWorkflow workflow = workflowClient.newWorkflowStub(VehicleOrderWorkflow.class, options);
+            WorkflowClient.start(workflow::placeOrder, orderRequest);
 
-            UnifiedWorkflowResponse unifiedResponse;
+            OrderResponse response;
             try {
-                unifiedResponse = workflowClient.newUntypedWorkflowStub("unified-" + orderDetails.getCustomerOrderId())
-                        .getResult(30, TimeUnit.SECONDS, UnifiedWorkflowResponse.class);
-                redisService.cacheWorkflowState(orderDetails.getCustomerOrderId(), unifiedResponse);
+                response = workflowClient.newUntypedWorkflowStub("order-" + orderDetails.getCustomerOrderId())
+                        .getResult(30, TimeUnit.SECONDS, OrderResponse.class);
             } catch (Exception e) {
                 log.error("Failed to get workflow result for order ID: {} - {}", orderDetails.getCustomerOrderId(), e.getMessage());
-                OrderResponse fallbackResponse = vehicleOrderService.mapToOrderResponse(orderRequest);
-                fallbackResponse.setOrderStatus(OrderStatus.PENDING);
-                fallbackResponse.setCustomerName(orderRequest.getCustomerName());
-                fallbackResponse.setModelName(orderRequest.getModelName());
-                fallbackResponse.setCreatedAt(LocalDateTime.now());
-                fallbackResponse.setCustomerOrderId(orderDetails.getCustomerOrderId());
-                unifiedResponse = new UnifiedWorkflowResponse(fallbackResponse, null, null, null);
-                redisService.cacheWorkflowState(orderDetails.getCustomerOrderId(), unifiedResponse);
-            }
-
-            OrderResponse response = unifiedResponse.getOrderResponse();
-            if (response == null || response.getOrderStatus() == null) {
-                log.warn("Workflow returned null order response or status for order ID: {}, defaulting to PENDING", orderDetails.getCustomerOrderId());
                 response = vehicleOrderService.mapToOrderResponse(orderRequest);
                 response.setOrderStatus(OrderStatus.PENDING);
+                response.setCustomerName(orderRequest.getCustomerName());
+                response.setModelName(orderRequest.getModelName());
+                response.setCreatedAt(LocalDateTime.now());
                 response.setCustomerOrderId(orderDetails.getCustomerOrderId());
-                unifiedResponse.setOrderResponse(response);
-                redisService.cacheWorkflowState(orderDetails.getCustomerOrderId(), unifiedResponse);
             }
 
-            orderDetails.setOrderStatus(unifiedResponse.getOverallOrderStatus());
+            if (response.getOrderStatus() == null) {
+                log.warn("Workflow returned null status for order ID: {}, defaulting to PENDING", orderDetails.getCustomerOrderId());
+                response.setOrderStatus(OrderStatus.PENDING);
+            }
+
+            orderDetails.setOrderStatus(response.getOrderStatus());
             orderRepository.save(orderDetails);
-            unifiedResponses.add(unifiedResponse);
+            orderResponses.add(response);
         }
 
-        MultiUnifiedWorkflowResponse multiUnifiedResponse = new MultiUnifiedWorkflowResponse(
+        MultiOrderResponse multiOrderResponse = new MultiOrderResponse(
                 HttpStatus.ACCEPTED.value(),
-                "Unified workflows started for orders with IDs: " + orderIds,
-                unifiedResponses
+                "Orders placed successfully with IDs: " + orderIds,
+                orderResponses
         );
 
         com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
                 HttpStatus.ACCEPTED.value(),
-                "Multiple unified workflows started successfully.",
-                multiUnifiedResponse
+                "Multiple orders placed successfully. Workflows started.",
+                multiOrderResponse
         );
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(apiResponse);
@@ -304,7 +253,7 @@ public class VehicleOrderController {
         log.info("Canceling order with ID: {}", customerOrderId);
         try {
             WorkflowOptions options = WorkflowOptions.newBuilder()
-                    .setTaskQueue("unified-task-queue")
+                    .setTaskQueue("vehicle-order-task-queue")
                     .setWorkflowId("cancel-order-" + customerOrderId)
                     .build();
 
@@ -314,26 +263,21 @@ public class VehicleOrderController {
             OrderResponse response = workflowClient.newUntypedWorkflowStub("cancel-order-" + customerOrderId)
                     .getResult(10, TimeUnit.SECONDS, OrderResponse.class);
 
-            UnifiedWorkflowResponse unifiedResponse = new UnifiedWorkflowResponse(response, null, null, null);
-            redisService.cacheWorkflowState(customerOrderId, unifiedResponse);
-
             log.info("Cancellation workflow started and completed successfully for order ID: {}", customerOrderId);
             com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
                     HttpStatus.OK.value(),
                     "Order canceled successfully with ID: " + customerOrderId,
-                    unifiedResponse
+                    response
             );
             return ResponseEntity.ok(apiResponse);
         } catch (Exception e) {
             log.error("Failed to start or complete cancellation workflow for order ID: {} - {}", customerOrderId, e.getMessage());
             OrderResponse response = vehicleOrderService.cancelOrder(customerOrderId);
-            UnifiedWorkflowResponse unifiedResponse = new UnifiedWorkflowResponse(response, null, null, null);
-            redisService.cacheWorkflowState(customerOrderId, unifiedResponse);
             log.info("Fallback: Order canceled directly with ID: {}", customerOrderId);
             com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
                     HttpStatus.OK.value(),
                     "Order canceled successfully with ID: " + customerOrderId + " (via fallback)",
-                    unifiedResponse
+                    response
             );
             return ResponseEntity.ok(apiResponse);
         }
@@ -479,6 +423,7 @@ public class VehicleOrderController {
         }
     }
 
+
     @GetMapping("/total")
     @Operation(summary = "Get total orders", description = "Retrieves the total number of orders in the system")
     @ApiResponses({
@@ -510,6 +455,7 @@ public class VehicleOrderController {
         }
     }
 
+
     @GetMapping("/pending/count")
     @Operation(summary = "Get pending orders count", description = "Retrieves the total number of orders with PENDING status")
     @ApiResponses({
@@ -540,6 +486,7 @@ public class VehicleOrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
         }
     }
+
 
     @GetMapping("/finance-pending/count")
     @Operation(summary = "Get finance pending orders count", description = "Retrieves the total number of orders with PENDING_FINANCE status")
@@ -602,6 +549,9 @@ public class VehicleOrderController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiResponse);
         }
     }
+
+
+
 
     @GetMapping("/{customerOrderId}")
     @Operation(summary = "Get order details by customer order ID", description = "Retrieves specific details of a vehicle order by customer order ID")

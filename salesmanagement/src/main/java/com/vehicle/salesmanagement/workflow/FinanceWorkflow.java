@@ -18,4 +18,7 @@ public interface FinanceWorkflow {
 
     @SignalMethod
     void rejectFinance(String rejectedBy);
+
+    @SignalMethod
+    void cancelFinance(Long customerOrderId);
 }
