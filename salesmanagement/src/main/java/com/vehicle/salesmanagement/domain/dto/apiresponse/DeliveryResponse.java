@@ -20,9 +20,4 @@ public class DeliveryResponse {
     private String recipientName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private String message;
-
-    public String getStatus() {
-        return deliveryStatus.name();
-    }
 }

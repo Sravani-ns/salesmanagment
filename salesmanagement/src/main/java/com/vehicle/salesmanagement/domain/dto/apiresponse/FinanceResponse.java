@@ -20,10 +20,4 @@ public class FinanceResponse {
     private String rejectedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private OrderStatus status;
-    private String message;
-
-    public String getStatus() {
-        return financeStatus.name();
-    }
 }

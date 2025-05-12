@@ -1,8 +1,8 @@
 package com.vehicle.salesmanagement.config;
 
 import com.vehicle.salesmanagement.activity.VehicleOrderActivitiesImpl;
-import com.vehicle.salesmanagement.workflow.VehicleOrderWorkflowImpl;
 import com.vehicle.salesmanagement.workflow.VehicleCancelWorkflowImpl;
+import com.vehicle.salesmanagement.workflow.VehicleOrderWorkflowImpl;
 import io.temporal.client.WorkflowClient;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import io.temporal.serviceclient.WorkflowServiceStubsOptions;
@@ -54,8 +54,7 @@ public class TemporalWorkerConfig {
             Worker worker = workerFactory.newWorker("vehicle-order-task-queue");
             worker.registerWorkflowImplementationTypes(
                     VehicleOrderWorkflowImpl.class,
-                    VehicleCancelWorkflowImpl.class,
-                    OrderFullLifecycleWorkflowImpl.class
+                    VehicleCancelWorkflowImpl.class
             );
             worker.registerActivitiesImplementations(vehicleOrderActivities);
             workerFactory.start();

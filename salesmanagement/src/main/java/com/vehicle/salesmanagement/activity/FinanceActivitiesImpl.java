@@ -3,7 +3,6 @@ package com.vehicle.salesmanagement.activity;
 import com.vehicle.salesmanagement.domain.dto.apirequest.FinanceRequest;
 import com.vehicle.salesmanagement.domain.dto.apiresponse.FinanceResponse;
 import com.vehicle.salesmanagement.service.FinanceService;
-import io.temporal.activity.Activity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -57,10 +56,5 @@ public class FinanceActivitiesImpl implements FinanceActivities {
             log.error("Failed to reject finance: {}", e.getMessage());
             throw new RuntimeException("Failed to reject finance: " + e.getMessage(), e);
         }
-    }
-
-    public void processFinance(FinanceRequest financeRequest) {
-        log.info("Activity: Processing finance for order ID: {}", financeRequest.getCustomerOrderId());
-        financeService.processFinance(financeRequest);
     }
 }

@@ -4,10 +4,8 @@ public enum OrderStatus {
     PENDING,
     PROCESSING,
     COMPLETED,
-    CANCELED,
     BLOCKED,
-    APPROVED,
-    REJECTED,
+    CANCELED,
     ALLOTTED,
     DISPATCHED,
     DELIVERED, CONFIRMED,NOTIFIED,;

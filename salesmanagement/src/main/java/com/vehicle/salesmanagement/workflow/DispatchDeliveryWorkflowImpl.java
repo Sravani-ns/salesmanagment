@@ -19,50 +19,18 @@ import java.util.Optional;
 public class DispatchDeliveryWorkflowImpl implements DispatchDeliveryWorkflow {
 
     private final DispatchDeliveryActivities activities;
-    private DispatchRequest dispatchRequest;
     private DeliveryRequest deliveryRequest;
-    private DeliveryResponse deliveryResponse;
     private boolean isDeliveryConfirmed = false;
 
     public DispatchDeliveryWorkflowImpl() {
         ActivityOptions options = ActivityOptions.newBuilder()
-                .setStartToCloseTimeout(Duration.ofSeconds(30))
+                .setStartToCloseTimeout(Duration.ofSeconds(60))
                 .setRetryOptions(RetryOptions.newBuilder()
                         .setInitialInterval(Duration.ofSeconds(1))
                         .setMaximumAttempts(3)
                         .build())
                 .build();
         this.activities = Workflow.newActivityStub(DispatchDeliveryActivities.class, options);
-    }
-
-    @Override
-    public void startDispatch(DispatchRequest request) {
-        this.dispatchRequest = request;
-        log.info("Starting dispatch process for order ID: {}", request.getCustomerOrderId());
-        // Implement dispatch logic here
-    }
-
-    @Override
-    public DeliveryResponse confirmDelivery(DeliveryRequest request) {
-        this.deliveryRequest = request;
-        log.info("Confirming delivery for order ID: {}", request.getCustomerOrderId());
-        
-        // Create and return delivery response
-        DeliveryResponse response = new DeliveryResponse();
-        response.setCustomerOrderId(request.getCustomerOrderId());
-        response.setCustomerName(request.getCustomerName());
-        response.setDeliveryDate(request.getDeliveryDate());
-        response.setDeliveredBy(request.getDeliveredBy());
-        response.setRecipientName(request.getRecipientName());
-        
-        this.deliveryResponse = response;
-        return response;
-    }
-
-    @Override
-    public void cancelDispatch(Long customerOrderId) {
-        log.info("Canceling dispatch for order ID: {}", customerOrderId);
-        // Implement cancellation logic here
     }
 
     @Override
@@ -96,10 +64,10 @@ public class DispatchDeliveryWorkflowImpl implements DispatchDeliveryWorkflow {
         }
 
         // Step 2: Wait for delivery confirmation signal
-        Workflow.await(Duration.ofMinutes(1), () -> isDeliveryConfirmed);
+        Workflow.await(Duration.ofMinutes(60), () -> isDeliveryConfirmed);
 
         if (!isDeliveryConfirmed || deliveryRequest == null) {
-            log.warn("Delivery not confirmed within 1 minutes for order ID: {}", customerOrderId);
+            log.warn("Delivery not confirmed within 60 minutes for order ID: {}", customerOrderId);
             throw new RuntimeException("Delivery not confirmed for order ID: " + customerOrderId);
         }
 

@@ -6,6 +6,7 @@ import com.vehicle.salesmanagement.domain.dto.apiresponse.DeliveryResponse;
 import com.vehicle.salesmanagement.domain.dto.apiresponse.DispatchResponse;
 import com.vehicle.salesmanagement.domain.entity.model.VehicleOrderDetails;
 import com.vehicle.salesmanagement.repository.VehicleOrderDetailsRepository;
+import com.vehicle.salesmanagement.service.DispatchDeliveryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

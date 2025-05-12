@@ -87,11 +87,4 @@ public class FinanceWorkflowImpl implements FinanceWorkflow {
         this.rejectedBy = rejectedBy;
         this.isRejected = true;
     }
-
-    @Override
-    public void cancelFinance(Long customerOrderId) {
-        // Implementation for canceling finance
-        log.info("Canceling finance for order ID: {}", customerOrderId);
-        // Add your finance cancellation logic here
-    }
 }

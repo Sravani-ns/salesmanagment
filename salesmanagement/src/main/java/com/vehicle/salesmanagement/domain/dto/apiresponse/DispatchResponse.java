@@ -19,8 +19,4 @@ public class DispatchResponse {
     private String dispatchedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
-    public String getStatus() {
-        return dispatchStatus.name();
-    }
 }
