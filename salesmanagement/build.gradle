@@ -32,14 +32,19 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-validation:3.2.2'
+
+	// Spring Security Dependency (Added)
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'io.lettuce:lettuce-core:6.3.2.RELEASE' // Compatible with Spring Boot 3.x
@@ -49,6 +54,7 @@ dependencies {
 implementation 'io.temporal:temporal-sdk:1.24.1'
 testImplementation 'io.temporal:temporal-testing:1.24.1'
 implementation 'io.temporal:temporal-spring-boot-starter:1.24.1'
+
 implementation("org.springframework.boot:spring-boot-starter-logging")// Optional
 
 // PostgreSQL Driver (Spring Boot manages the version)

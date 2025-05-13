@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -430,10 +431,14 @@ public class VehicleOrderController {
             @ApiResponse(responseCode = "200", description = "Total orders retrieved successfully",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse.class)))
     })
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> getTotalOrders() {
         log.info("Received request for total orders");
         try {
@@ -455,7 +460,6 @@ public class VehicleOrderController {
         }
     }
 
-
     @GetMapping("/pending/count")
     @Operation(summary = "Get pending orders count", description = "Retrieves the total number of orders with PENDING status")
     @ApiResponses({
@@ -466,6 +470,7 @@ public class VehicleOrderController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse.class)))
     })
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> getPendingOrdersCount() {
         log.info("Received request for pending orders count");
         try {
@@ -498,6 +503,7 @@ public class VehicleOrderController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse.class)))
     })
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> getFinancePendingOrdersCount() {
         log.info("Received request for finance pending orders count");
         try {
@@ -529,6 +535,7 @@ public class VehicleOrderController {
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse.class)))
     })
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> getClosedOrdersCount() {
         log.info("Received request for closed orders count");
         try {
