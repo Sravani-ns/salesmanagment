@@ -1,6 +1,7 @@
 package com.vehicle.salesmanagement.config;
 
 import com.vehicle.salesmanagement.activity.DispatchDeliveryActivitiesImpl;
+import com.vehicle.salesmanagement.workflow.DispatchDeliveryWorkflowImpl;
 import io.temporal.client.WorkflowClient;
 import io.temporal.serviceclient.WorkflowServiceStubs;
 import io.temporal.worker.Worker;
