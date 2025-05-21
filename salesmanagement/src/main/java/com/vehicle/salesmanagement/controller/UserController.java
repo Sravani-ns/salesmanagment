@@ -50,25 +50,25 @@ public class UserController {
                     .replace("ROLE_", "");
 
             Map<String, Boolean> permissions = new HashMap<>();
-            if ("ADMIN".equals(role) || "MANAGER".equals(role) || "USER".equals(role)) {
+            if ("ADMIN".equals(role) || "MANAGER".equals(role)) {
                 permissions.put("viewTotalOrders", true);
             } else {
                 permissions.put("viewTotalOrders", false);
             }
             // Permission for Pending Orders (accessible to all authenticated users)
-            if ("ADMIN".equals(role) || "MANAGER".equals(role) || "USER".equals(role)) {
+            if ("ADMIN".equals(role) || "MANAGER".equals(role)) {
                 permissions.put("viewPendingOrders", true);
             } else {
                 permissions.put("viewPendingOrders", false);
             }
             // Permission for Finance Pending (accessible to all authenticated users)
-            if ("ADMIN".equals(role) || "MANAGER".equals(role) || "USER".equals(role)) {
+            if ("ADMIN".equals(role) || "MANAGER".equals(role)) {
                 permissions.put("viewFinancePending", true);
             } else {
                 permissions.put("viewFinancePending", false);
             }
             // Permission for Closed Orders (accessible to all authenticated users)
-            if ("ADMIN".equals(role) || "MANAGER".equals(role) || "USER".equals(role)) {
+            if ("ADMIN".equals(role) || "MANAGER".equals(role)) {
                 permissions.put("viewClosedOrders", true);
             } else {
                 permissions.put("viewClosedOrders", false);

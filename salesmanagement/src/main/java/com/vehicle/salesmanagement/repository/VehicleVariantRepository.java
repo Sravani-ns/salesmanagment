@@ -173,4 +173,8 @@ public interface VehicleVariantRepository extends JpaRepository<VehicleVariant,L
 
     @Query("SELECT DISTINCT v.vinNumber FROM VehicleVariant v WHERE v.vehicleModel.modelName = :modelName")
     List<String> findDistinctVinNumbersByModelName(@Param("modelName") String modelName);
+
+    List<VehicleVariant> findByVehicleModel_ModelNameAndVariant(String modelName, String variant);
+
+    List<VehicleVariant> findByVehicleModel_ModelName(String modelName);
 }

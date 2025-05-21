@@ -19,4 +19,6 @@ public interface StockDetailsRepository extends JpaRepository<StockDetails, Long
     );
 
     List<StockDetails> findByVehicleVariantAndVehicleModel(VehicleVariant variant, VehicleModel model);
+
+    List<StockDetails> findByStockStatus(StockStatus stockStatus);
 }
