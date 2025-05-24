@@ -27,9 +27,6 @@ public class ManufacturerOrder {
     @Column(name = "manufacturer_location", length = 255, nullable = false)
     private String manufacturerLocation;
 
-    @Column(name = "expected_delivery_date", nullable = false)
-    private LocalDateTime expectedDeliveryDate;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status", nullable = false)
     private OrderStatus orderStatus; // (Pending, In Production, Shipped)

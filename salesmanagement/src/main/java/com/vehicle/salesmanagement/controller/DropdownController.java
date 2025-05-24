@@ -27,7 +27,7 @@ public class DropdownController {
 
     private final DropdownService dropdownService;
 
-    @GetMapping("/vehicle-attributes")
+    @GetMapping("/vehicleAttributes")
     @Operation(summary = "Get vehicle attributes", description = "Retrieves all vehicle attributes, optionally filtered by model name and variant")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Vehicle attributes retrieved successfully",
@@ -41,9 +41,10 @@ public class DropdownController {
                             schema = @Schema(implementation = ApiResponse.class)))
     })
     public ResponseEntity<ApiResponse> getVehicleAttributes(
-            @RequestParam(value = "modelName", required = false) String modelName,
-            @RequestParam(value = "variant", required = false) String variant) {
-        log.info("Received request for vehicle attributes with modelName: {}, variant: {}", modelName, variant);
+           @RequestParam(value = "modelName", required = false) String modelName,
+        @RequestParam(value = "variant", required = false) String variant)
+           {
+       log.info("Received request for vehicle attributes with modelName: {}, variant: {}", modelName, variant);
         try {
             if (modelName != null && modelName.trim().isEmpty()) {
                 log.error("Model name cannot be empty when provided");

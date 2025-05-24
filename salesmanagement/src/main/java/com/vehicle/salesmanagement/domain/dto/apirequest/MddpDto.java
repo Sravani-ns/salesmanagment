@@ -1,10 +1,7 @@
 package com.vehicle.salesmanagement.domain.dto.apirequest;
 
-
-
-public class StockDTO {
-
-    private Long stockId;
+public class MddpDto {
+    private Long mddpOrderId;
     private String modelName;
     private String fuelType;
     private String transmissionType;
@@ -16,12 +13,12 @@ public class StockDTO {
     private String colour;
     private String interiorColour;
 
-    public Long getStockId() {
-        return stockId;
+    public Long getMddpOrderId() {
+        return mddpOrderId;
     }
 
-    public void setStockId(Long stockId) {
-        this.stockId = stockId;
+    public void setMddpOrderId(Long mddpOrderId) {
+        this.mddpOrderId = mddpOrderId;
     }
 
     public String getModelName() {

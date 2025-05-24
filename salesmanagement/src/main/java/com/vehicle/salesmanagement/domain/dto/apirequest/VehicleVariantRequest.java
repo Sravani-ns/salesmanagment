@@ -1,9 +1,11 @@
 package com.vehicle.salesmanagement.domain.dto.apirequest;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public class VehicleVariantRequest {
@@ -15,21 +17,21 @@ public class VehicleVariantRequest {
     @Size(min = 1, max = 50, message = "Variant must be between 1 and 50 characters")
     private String variant;
 
-    @Size(max = 10, message = "Suffix must not exceed 10 characters")
+    @Size(max = 50, message = "Suffix must not exceed 10 characters")
     private String suffix;
 
-    @Size(max = 500, message = "Safety feature must not exceed 500 characters")
+    @Size(max = 255, message = "Safety feature must not exceed 500 characters")
     private String safetyFeature;
 
     @NotBlank(message = "Colour cannot be blank")
-    @Size(max = 50, message = "Colour must not exceed 50 characters")
+    @Size(max = 100, message = "Colour must not exceed 50 characters")
     private String colour;
 
     @Size(max = 50, message = "Engine colour must not exceed 50 characters")
     private String engineColour;
 
     @NotBlank(message = "Transmission type cannot be blank")
-    @Size(max = 20, message = "Transmission type must not exceed 20 characters")
+    @Size(max = 50, message = "Transmission type must not exceed 20 characters")
     private String transmissionType;
 
     @Size(max = 50, message = "Interior colour must not exceed 50 characters")
@@ -40,11 +42,11 @@ public class VehicleVariantRequest {
     private String vinNumber;
 
     @NotBlank(message = "Engine capacity cannot be blank")
-    @Size(max = 20, message = "Engine capacity must not exceed 20 characters")
+    @Size(max = 50, message = "Engine capacity must not exceed 20 characters")
     private String engineCapacity;
 
     @NotBlank(message = "Fuel type cannot be blank")
-    @Size(max = 20, message = "Fuel type must not exceed 20 characters")
+    @Size(max = 50, message = "Fuel type must not exceed 20 characters")
     private String fuelType;
 
     @NotNull(message = "Price cannot be null")
@@ -95,7 +97,7 @@ public class VehicleVariantRequest {
     @Size(max = 500, message = "Infotainment must not exceed 500 characters")
     private String infotainment;
 
-    @Size(max = 500, message = "Comfort must not exceed 500 characters")
+    @Size(max = 255, message = "Comfort must not exceed 500 characters")
     private String comfort;
 
     @NotNull(message = "Number of air bags cannot be null")
@@ -111,6 +113,9 @@ public class VehicleVariantRequest {
     private BigDecimal mileageHighway;
 
     @NotBlank(message = "Created by cannot be blank")
-    @Size(min = 1, max = 100, message = "Created by must be between 1 and 100 characters")
+    @Size(min = 1, max = 50, message = "Created by must be between 1 and 100 characters")
     private String createdBy;
+
+
+
 }

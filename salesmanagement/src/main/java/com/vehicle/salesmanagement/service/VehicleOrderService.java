@@ -1,7 +1,5 @@
 package com.vehicle.salesmanagement.service;
-import com.vehicle.salesmanagement.domain.dto.apirequest.OrderRequest;
-import com.vehicle.salesmanagement.domain.dto.apirequest.VehicleModelRequest;
-import com.vehicle.salesmanagement.domain.dto.apirequest.VehicleVariantRequest;
+import com.vehicle.salesmanagement.domain.dto.apirequest.*;
 import com.vehicle.salesmanagement.domain.dto.apiresponse.OrderDetailsResponse;
 import com.vehicle.salesmanagement.domain.dto.apiresponse.OrderResponse;
 import com.vehicle.salesmanagement.domain.dto.apiresponse.TotalOrdersResponse;
@@ -16,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -281,15 +280,17 @@ public class VehicleOrderService {
         return response;
     }
 
+
+
+
     @Transactional
     public VehicleModelResponse addVehicleModel(VehicleModelRequest request) {
         if (vehicleModelRepository.findByModelName(request.getModelName()).isPresent()) {
-            VehicleModelResponse response = new VehicleModelResponse(
+            return new VehicleModelResponse(
                     request.getModelName(),
                     null,
                     "Vehicle model '" + request.getModelName() + "' already exists."
             );
-            return response;
         }
 
         VehicleModel vehicleModel = new VehicleModel();
@@ -305,6 +306,24 @@ public class VehicleOrderService {
                 vehicleModel.getVehicleModelId(),
                 null
         );
+    }
+
+    @Transactional
+    public List<VehicleModelResponse> addBulkVehicleModel(List<VehicleModelRequest> requests) {
+        List<VehicleModelResponse> responses = new ArrayList<>();
+        for (VehicleModelRequest request : requests) {
+            try {
+                VehicleModelResponse response = addVehicleModel(request);
+                responses.add(response);
+            } catch (Exception e) {
+                responses.add(new VehicleModelResponse(
+                        request.getModelName(),
+                        null,
+                        "Failed to add vehicle model: " + e.getMessage()
+                ));
+            }
+        }
+        return responses;
     }
 
     @Transactional
@@ -349,6 +368,33 @@ public class VehicleOrderService {
     }
 
     @Transactional
+    public List<String> addBulkVehicleStock(List<StockAddRequest> requests) {
+        List<String> messages = new ArrayList<>();
+        for (StockAddRequest request : requests) {
+            try {
+                addVehicleStock(
+                        request.getModelId(),
+                        request.getVariantId(),
+                        request.getSuffix(),
+                        request.getFuelType(),
+                        request.getColour(),
+                        request.getEngineColour(),
+                        request.getTransmissionType(),
+                        request.getVariantName(),
+                        request.getQuantity(),
+                        request.getInteriorColour(),
+                        request.getVinNumber(),
+                        request.getCreatedBy()
+                );
+                messages.add("Stock added successfully for VIN: " + request.getVinNumber());
+            } catch (Exception e) {
+                messages.add("Failed to add stock for VIN " + request.getVinNumber() + ": " + e.getMessage());
+            }
+        }
+        return messages;
+    }
+
+    @Transactional
     public VehicleVariant addVariantToModel(VehicleVariantRequest request) {
         VehicleModel model = vehicleModelRepository.findById(request.getModelId())
                 .orElseThrow(() -> new RuntimeException("Vehicle model not found with ID: " + request.getModelId()));
@@ -388,6 +434,178 @@ public class VehicleOrderService {
 
         return variantRepository.save(variant);
     }
+
+    @Transactional
+    public List<VehicleVariant> addBulkVariantToModel(List<VehicleVariantRequest> requests) {
+        List<VehicleVariant> savedVariants = new ArrayList<>();
+        for (VehicleVariantRequest request : requests) {
+            try {
+                VehicleVariant variant = addVariantToModel(request);
+                savedVariants.add(variant);
+            } catch (Exception e) {
+                // Log the error or handle it as needed
+                System.err.println("Failed to add variant for model ID " + request.getModelId() + ": " + e.getMessage());
+            }
+        }
+        return savedVariants;
+    }
+
+    @Transactional
+    public void addMddpStock(MddpStockAddRequest request) {
+        VehicleModel model = vehicleModelRepository.findById(request.getModelId())
+                .orElseThrow(() -> new RuntimeException("Vehicle model not found: " + request.getModelId()));
+        VehicleVariant variant = variantRepository.findById(request.getVariantId())
+                .orElseThrow(() -> new RuntimeException("Vehicle variant not found: " + request.getVariantId()));
+
+        MddpStock stock = new MddpStock();
+        stock.setVehicleModel(model);
+        stock.setVehicleVariant(variant);
+        stock.setSuffix(request.getSuffix());
+        stock.setFuelType(request.getFuelType());
+        stock.setColour(request.getColour());
+        stock.setEngineColour(request.getEngineColour());
+        stock.setTransmissionType(request.getTransmissionType());
+        stock.setGrade(request.getGrade());
+        stock.setQuantity(request.getQuantity());
+        stock.setStockStatus(request.getStockStatus());
+        stock.setExpectedDispatchDate(request.getExpectedDispatchDate());
+        stock.setExpectedDeliveryDate(request.getExpectedDeliveryDate());
+        stock.setInteriorColour(request.getInteriorColour());
+        stock.setVin(request.getVin());
+        stock.setCreatedAt(LocalDateTime.now());
+        stock.setUpdatedAt(LocalDateTime.now());
+        stock.setCreatedBy(request.getCreatedBy());
+        stock.setUpdatedBy(request.getCreatedBy());
+
+        mddpStockRepository.save(stock);
+    }
+
+    @Transactional
+    public List<String> addBulkMddpStock(List<MddpStockAddRequest> requests) {
+        List<String> messages = new ArrayList<>();
+        for (MddpStockAddRequest request : requests) {
+            try {
+                addMddpStock(request);
+                messages.add("MDDP stock added successfully for VIN: " + request.getVin());
+            } catch (Exception e) {
+                messages.add("Failed to add MDDP stock for VIN " + request.getVin() + ": " + e.getMessage());
+            }
+        }
+        return messages;
+    }
+
+
+
+
+
+
+//    @Transactional
+//    public VehicleModelResponse addVehicleModel(VehicleModelRequest request) {
+//        if (vehicleModelRepository.findByModelName(request.getModelName()).isPresent()) {
+//            VehicleModelResponse response = new VehicleModelResponse(
+//                    request.getModelName(),
+//                    null,
+//                    "Vehicle model '" + request.getModelName() + "' already exists."
+//            );
+//            return response;
+//        }
+//
+//        VehicleModel vehicleModel = new VehicleModel();
+//        vehicleModel.setModelName(request.getModelName());
+//        vehicleModel.setCreatedBy(request.getCreatedBy() != null ? request.getCreatedBy() : "admin");
+//        vehicleModel.setUpdatedBy(request.getCreatedBy() != null ? request.getCreatedBy() : "admin");
+//        vehicleModel.setCreatedAt(LocalDateTime.now());
+//        vehicleModel.setUpdatedAt(LocalDateTime.now());
+//        vehicleModel = vehicleModelRepository.save(vehicleModel);
+//
+//        return new VehicleModelResponse(
+//                vehicleModel.getModelName(),
+//                vehicleModel.getVehicleModelId(),
+//                null
+//        );
+//    }
+//
+//    @Transactional
+//    public void addVehicleStock(
+//            Long modelId,
+//            Long variantId,
+//            String suffix,
+//            String fuelType,
+//            String colour,
+//            String engineColour,
+//            String transmissionType,
+//            String variantName,
+//            int quantity,
+//            String interiorColour,
+//            String vinNumber,
+//            String createdBy
+//    ) {
+//        VehicleModel model = vehicleModelRepository.findById(modelId)
+//                .orElseThrow(() -> new RuntimeException("Vehicle model not found: " + modelId));
+//        VehicleVariant variant = variantRepository.findById(variantId)
+//                .orElseThrow(() -> new RuntimeException("Vehicle variant not found: " + variantId));
+//
+//        StockDetails stock = new StockDetails();
+//        stock.setVehicleModel(model);
+//        stock.setVehicleVariant(variant);
+//        stock.setSuffix(suffix);
+//        stock.setFuelType(fuelType);
+//        stock.setColour(colour);
+//        stock.setEngineColour(engineColour);
+//        stock.setTransmissionType(transmissionType);
+//        stock.setVariant(variantName);
+//        stock.setQuantity(quantity);
+//        stock.setInteriorColour(interiorColour);
+//        stock.setVinNumber(vinNumber);
+//        stock.setStockStatus(StockStatus.AVAILABLE);
+//        stock.setCreatedAt(LocalDateTime.now());
+//        stock.setCreatedBy(createdBy);
+//        stock.setUpdatedAt(LocalDateTime.now());
+//        stock.setUpdatedBy(createdBy);
+//
+//        stockRepository.save(stock);
+//    }
+//
+//    @Transactional
+//    public VehicleVariant addVariantToModel(VehicleVariantRequest request) {
+//        VehicleModel model = vehicleModelRepository.findById(request.getModelId())
+//                .orElseThrow(() -> new RuntimeException("Vehicle model not found with ID: " + request.getModelId()));
+//
+//        VehicleVariant variant = new VehicleVariant();
+//        variant.setVehicleModel(model);
+//        variant.setVariant(request.getVariant());
+//        variant.setSuffix(request.getSuffix());
+//        variant.setSafetyFeature(request.getSafetyFeature());
+//        variant.setColour(request.getColour());
+//        variant.setEngineColour(request.getEngineColour());
+//        variant.setTransmissionType(request.getTransmissionType());
+//        variant.setInteriorColour(request.getInteriorColour());
+//        variant.setVinNumber(request.getVinNumber());
+//        variant.setEngineCapacity(request.getEngineCapacity());
+//        variant.setFuelType(request.getFuelType());
+//        variant.setPrice(request.getPrice());
+//        variant.setYearOfManufacture(request.getYearOfManufacture());
+//        variant.setBodyType(request.getBodyType());
+//        variant.setFuelTankCapacity(request.getFuelTankCapacity());
+//        variant.setSeatingCapacity(request.getSeatingCapacity());
+//        variant.setMaxPower(request.getMaxPower());
+//        variant.setMaxTorque(request.getMaxTorque());
+//        variant.setTopSpeed(request.getTopSpeed());
+//        variant.setWheelBase(request.getWheelBase());
+//        variant.setWidth(request.getWidth());
+//        variant.setLength(request.getLength());
+//        variant.setInfotainment(request.getInfotainment());
+//        variant.setComfort(request.getComfort());
+//        variant.setNumberOfAirBags(request.getNumberOfAirBags());
+//        variant.setMileageCity(request.getMileageCity());
+//        variant.setMileageHighway(request.getMileageHighway());
+//        variant.setCreatedBy(request.getCreatedBy());
+//        variant.setUpdatedBy(request.getCreatedBy());
+//        variant.setCreatedAt(LocalDateTime.now());
+//        variant.setUpdatedAt(LocalDateTime.now());
+//
+//        return variantRepository.save(variant);
+//    }
 
     public int getBookedVehicleCount(Long customerOrderId) {
         VehicleOrderDetails orderDetails = orderRepository.findById(customerOrderId)

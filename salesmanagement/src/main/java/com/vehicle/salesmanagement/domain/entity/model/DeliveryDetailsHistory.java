@@ -56,4 +56,6 @@ public class DeliveryDetailsHistory {
 
     @Column(name = "delivery_status_history")
     private String deliveryStatusHistory;
+
+
 }

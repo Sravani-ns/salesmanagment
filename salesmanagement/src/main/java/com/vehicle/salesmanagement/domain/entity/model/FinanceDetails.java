@@ -32,4 +32,23 @@ public class FinanceDetails {
     private String approvedBy;
 
     private String rejectedBy;
+
+    public void setVehicleModelId(Long vehicleModelId) {
+    }
+
+    public void setVehicleVariantId(Long vehicleVariantId) {
+    }
+
+    public void setModelName(String modelName) {
+    }
+
+    public void setVariant(String variant) {
+    }
+
+    public void setCreatedBy(String customerName) {
+    }
+
+    public void setUpdatedBy(String customerName) {
+    }
+
 }

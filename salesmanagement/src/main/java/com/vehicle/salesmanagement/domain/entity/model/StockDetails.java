@@ -213,4 +213,7 @@ public class StockDetails {
 
     public void setVehicleModelId(@NotNull(message = "Vehicle model ID cannot be null") Long vehicleModelId) {
     }
+
+    public void setVin(String vin) {
+    }
 }

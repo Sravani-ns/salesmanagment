@@ -283,6 +283,9 @@ public class VehicleOrderController {
         }
     }
 
+
+
+
     @PostMapping("/addStock")
     @Operation(summary = "Add vehicle stock", description = "Adds stock for a vehicle model and variant")
     @ApiResponses({
@@ -313,6 +316,23 @@ public class VehicleOrderController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @PostMapping("/addBulkStock")
+    @Operation(summary = "Add bulk vehicle stock", description = "Adds multiple stock entries for vehicle models and variants")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Bulk stock added successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> addBulkStock(@Valid @RequestBody BulkStockAddRequest request) {
+        List<String> messages = vehicleOrderService.addBulkVehicleStock(request.getStocks());
+        com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
+                HttpStatus.OK.value(),
+                "Bulk stock addition completed: " + messages.size() + " records processed",
+                messages
+        );
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @PostMapping("/addVehicleModel")
     @Operation(summary = "Add a vehicle model", description = "Adds a new vehicle model to the system")
     @ApiResponses({
@@ -330,6 +350,23 @@ public class VehicleOrderController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @PostMapping("/addBulkVehicleModel")
+    @Operation(summary = "Add bulk vehicle models", description = "Adds multiple vehicle models to the system")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Bulk vehicle models added successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> addBulkModel(@Valid @RequestBody BulkVehicleModelRequest request) {
+        List<VehicleModelResponse> responses = vehicleOrderService.addBulkVehicleModel(request.getModels());
+        com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
+                HttpStatus.OK.value(),
+                "Bulk vehicle model addition completed: " + responses.size() + " records processed",
+                responses
+        );
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @PostMapping("/addVariant")
     @Operation(summary = "Add a vehicle variant", description = "Adds a new variant to current vehicle model")
     @ApiResponses({
@@ -343,6 +380,23 @@ public class VehicleOrderController {
                 HttpStatus.OK.value(),
                 "Variant added with ID: " + saved.getVehicleVariantId(),
                 saved
+        );
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/addBulkVariant")
+    @Operation(summary = "Add bulk vehicle variants", description = "Adds multiple variants to vehicle models")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Bulk variants added successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> addBulkVariant(@Valid @RequestBody BulkVehicleVariantRequest request) {
+        List<VehicleVariant> savedVariants = vehicleOrderService.addBulkVariantToModel(request.getVariants());
+        com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
+                HttpStatus.OK.value(),
+                "Bulk variant addition completed: " + savedVariants.size() + " records processed",
+                savedVariants
         );
         return ResponseEntity.ok(apiResponse);
     }
@@ -375,6 +429,139 @@ public class VehicleOrderController {
         order.setUpdatedAt(LocalDateTime.now());
         return order;
     }
+
+    @PostMapping("/addMddpStock")
+    @Operation(summary = "Add MDDP stock", description = "Adds MDDP stock for a vehicle model and variant")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "MDDP stock added successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> addMddpStock(@Valid @RequestBody MddpStockAddRequest request) {
+        vehicleOrderService.addMddpStock(request);
+        com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
+                HttpStatus.OK.value(),
+                "MDDP stock added successfully",
+                null
+        );
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @PostMapping("/addBulkMddpStock")
+    @Operation(summary = "Add bulk MDDP stock", description = "Adds multiple MDDP stock entries for vehicle models and variants")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Bulk MDDP stock added successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> addBulkMddpStock(@Valid @RequestBody BulkMddpStockAddRequest request) {
+        List<String> messages = vehicleOrderService.addBulkMddpStock(request.getStocks());
+        com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
+                HttpStatus.OK.value(),
+                "Bulk MDDP stock addition completed: " + messages.size() + " records processed",
+                messages
+        );
+        return ResponseEntity.ok(apiResponse);
+    }
+
+
+
+
+
+
+//    @PostMapping("/addStock")
+//    @Operation(summary = "Add vehicle stock", description = "Adds stock for a vehicle model and variant")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "Stock added successfully"),
+//            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+//            @ApiResponse(responseCode = "500", description = "Internal server error")
+//    })
+//    public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> addStock(@Valid @RequestBody StockAddRequest request) {
+//        vehicleOrderService.addVehicleStock(
+//                request.getModelId(),
+//                request.getVariantId(),
+//                request.getSuffix(),
+//                request.getFuelType(),
+//                request.getColour(),
+//                request.getEngineColour(),
+//                request.getTransmissionType(),
+//                request.getVariantName(),
+//                request.getQuantity(),
+//                request.getInteriorColour(),
+//                request.getVinNumber(),
+//                request.getCreatedBy()
+//        );
+//        com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
+//                HttpStatus.OK.value(),
+//                "Stock added successfully",
+//                null
+//        );
+//        return ResponseEntity.ok(apiResponse);
+//    }
+//
+//    @PostMapping("/addVehicleModel")
+//    @Operation(summary = "Add a vehicle model", description = "Adds a new vehicle model to the system")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "Vehicle model added successfully"),
+//            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+//            @ApiResponse(responseCode = "500", description = "Internal server error")
+//    })
+//    public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> addModel(@Valid @RequestBody VehicleModelRequest request) {
+//
+//        VehicleModelResponse modelResponse = vehicleOrderService.addVehicleModel(request);
+//        com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
+//                HttpStatus.OK.value(),
+//                modelResponse.getMessage() != null ? modelResponse.getMessage() : "Vehicle model added successfully with ID: " + modelResponse.getVehicleModelId(),
+//                modelResponse
+//        );
+//        return ResponseEntity.ok(apiResponse);
+//    }
+//
+//    @PostMapping("/addVariant")
+//    @Operation(summary = "Add a vehicle variant", description = "Adds a new variant to current vehicle model")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "Variant added successfully"),
+//            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+//            @ApiResponse(responseCode = "500", description = "Internal server error")
+//    })
+//    public ResponseEntity<com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse> addVariant(@Valid @RequestBody VehicleVariantRequest request) {
+//        VehicleVariant saved = vehicleOrderService.addVariantToModel(request);
+//        com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse apiResponse = new com.vehicle.salesmanagement.domain.dto.apiresponse.ApiResponse(
+//                HttpStatus.OK.value(),
+//                "Variant added with ID: " + saved.getVehicleVariantId(),
+//                saved
+//        );
+//        return ResponseEntity.ok(apiResponse);
+//    }
+//
+//    private VehicleOrderDetails mapOrderRequestToEntity(OrderRequest request) {
+//        VehicleOrderDetails order = new VehicleOrderDetails();
+//        order.setVehicleModel(vehicleModelRepository.findById(request.getVehicleModelId())
+//                .orElseThrow(() -> new RuntimeException("Vehicle Model not found: " + request.getVehicleModelId())));
+//        order.setVehicleVariant(vehicleVariantRepository.findById(request.getVehicleVariantId())
+//                .orElseThrow(() -> new RuntimeException("Vehicle Variant not found: " + request.getVehicleVariantId())));
+//        order.setCustomerName(request.getCustomerName());
+//        order.setPhoneNumber(request.getPhoneNumber() != null ? request.getPhoneNumber() : "");
+//        order.setEmail(request.getEmail() != null ? request.getEmail() : "");
+//        order.setPermanentAddress(request.getPermanentAddress() != null ? request.getPermanentAddress() : "");
+//        order.setCurrentAddress(request.getCurrentAddress() != null ? request.getCurrentAddress() : "");
+//        order.setAadharNo(request.getAadharNo() != null ? request.getAadharNo() : "");
+//        order.setPanNo(request.getPanNo() != null ? request.getPanNo() : "");
+//        order.setModelName(request.getModelName());
+//        order.setFuelType(request.getFuelType());
+//        order.setColour(request.getColour());
+//        order.setTransmissionType(request.getTransmissionType());
+//        order.setVariant(request.getVariant());
+//        order.setQuantity(request.getQuantity());
+//        order.setTotalPrice(BigDecimal.valueOf(request.getTotalPrice().doubleValue()));
+//        order.setBookingAmount(BigDecimal.valueOf(request.getBookingAmount().doubleValue()));
+//        order.setPaymentMode(request.getPaymentMode() != null ? request.getPaymentMode() : "");
+//        order.setCreatedBy(request.getCreatedBy() != null ? request.getCreatedBy() : "system");
+//        order.setUpdatedBy(request.getUpdatedBy() != null ? request.getUpdatedBy() : "system");
+//        order.setCreatedAt(LocalDateTime.now());
+//        order.setUpdatedAt(LocalDateTime.now());
+//        return order;
+//    }
 
     @GetMapping("/{customerOrderId}/vehicle-count")
     @Operation(summary = "Get booked vehicle count", description = "Retrieves the number of vehicles booked for a given customer order ID")
