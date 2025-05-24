@@ -16,4 +16,6 @@ public interface MddpStockRepository extends JpaRepository<MddpStock, Long> {
     Optional<MddpStock> findByVehicleVariantAndStockStatus(@Param("vehicleVariant") VehicleVariant vehicleVariant, @Param("stockStatus") StockStatus stockStatus);
 
     List<MddpStock> findByStockStatus(StockStatus stockStatus);
+
+    Optional<Object> findByVinNumber(String vinNumber);
 }

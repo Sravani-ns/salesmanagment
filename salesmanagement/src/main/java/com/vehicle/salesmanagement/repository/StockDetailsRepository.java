@@ -10,9 +10,10 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface StockDetailsRepository extends JpaRepository<StockDetails, byte[]> {
+public interface StockDetailsRepository extends JpaRepository<StockDetails,Long> {
     @Query("SELECT s FROM StockDetails s WHERE s.vehicleVariant = :vehicleVariant AND s.stockStatus = :stockStatus")
     List<StockDetails> findByVehicleVariantAndStockStatus(
             @Param("vehicleVariant") VehicleVariant vehicleVariant,
@@ -22,4 +23,6 @@ public interface StockDetailsRepository extends JpaRepository<StockDetails, byte
     List<StockDetails> findByVehicleVariantAndVehicleModel(VehicleVariant variant, VehicleModel model);
 
     List<StockDetails> findByStockStatus(StockStatus stockStatus);
+
+    Optional<Object> findByVinNumber(String vinNumber);
 }

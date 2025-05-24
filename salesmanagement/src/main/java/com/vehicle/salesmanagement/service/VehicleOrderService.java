@@ -465,13 +465,13 @@ public class VehicleOrderService {
         stock.setColour(request.getColour());
         stock.setEngineColour(request.getEngineColour());
         stock.setTransmissionType(request.getTransmissionType());
-        stock.setGrade(request.getGrade());
+        stock.setVariant(request.getGrade());
         stock.setQuantity(request.getQuantity());
         stock.setStockStatus(request.getStockStatus());
         stock.setExpectedDispatchDate(request.getExpectedDispatchDate());
         stock.setExpectedDeliveryDate(request.getExpectedDeliveryDate());
         stock.setInteriorColour(request.getInteriorColour());
-        stock.setVin(request.getVin());
+        stock.setVinNumber(request.getVin());
         stock.setCreatedAt(LocalDateTime.now());
         stock.setUpdatedAt(LocalDateTime.now());
         stock.setCreatedBy(request.getCreatedBy());

@@ -47,8 +47,8 @@ public class MddpStock {
     @Column(name = "transmission_type", length = 50)
     private String transmissionType;
 
-    @Column(name = "grade", length = 50)
-    private String grade;
+    @Column(name = "variant", length = 50)
+    private String variant;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
@@ -65,8 +65,8 @@ public class MddpStock {
     @Column(name = "interior_colour", length = 50)
     private String interiorColour;
 
-    @Column(name = "vin", length = 50, unique = true, nullable = false)
-    private String vin;
+    @Column(name = "vin_number", length = 50, unique = true, nullable = false)
+    private String vinNumber;
 
     @Column(name = "created_by", length = 100)
     private String createdBy;
@@ -154,12 +154,12 @@ public class MddpStock {
         this.transmissionType = transmissionType;
     }
 
-    public String getGrade() {
-        return grade;
+    public String getVariant() {
+        return variant;
     }
 
-    public void setGrade(String grade) {
-        this.grade = grade;
+    public void setVariant(String variant) {
+        this.variant = variant;
     }
 
     public Integer getQuantity() {
@@ -202,12 +202,12 @@ public class MddpStock {
         this.interiorColour = interiorColour;
     }
 
-    public String getVin() {
-        return vin;
+    public String getVinNumber() {
+        return vinNumber;
     }
 
-    public void setVin(String vin) {
-        this.vin = vin;
+    public void setVinNumber(String vinNumber) {
+        this.vinNumber = vinNumber;
     }
 
     public String getCreatedBy() {

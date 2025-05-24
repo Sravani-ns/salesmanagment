@@ -103,4 +103,5 @@ public class StockDTO {
     public void setInteriorColour(String interiorColour) {
         this.interiorColour = interiorColour;
     }
+
 }
